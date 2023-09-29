@@ -1,5 +1,5 @@
 const fs = require('fs');
-import {screen, fireEvent} from '@testing-library/dom'
+import {screen, getByRole} from '@testing-library/dom'
 
 beforeEach(() => {
   const fileContent = fs.readFileSync('src/index.html', 'utf8');
@@ -28,44 +28,33 @@ afterEach(() => {
 
 
 
-test('O parágrafo existe', () => {
-  const list = screen.getAllByText("Me altere, por favor!");
-  expect(list.length).toBe(1)
+test('A lista não está vazia', () => {
+  const list = screen.getAllByRole("listitem");
+  expect(list.length).toBeGreaterThan(0)
 })
 
-test('O botão existe', () => {
-  const list = screen.getAllByText("Editar parágrafo");
-  expect(list.length).toBe(1)
+test('Existe um botão de remover para cada item da lista', () => {
+  const list = screen.getAllByRole("listitem");
+  for (const item of list) {
+    const button = getByRole(item, "button")
+    expect(button.innerHTML).toBe("Remover")
+  }
 })
 
-test('Ao clicar no botão o parágrafo se tornar editável', () => {
-  const button = screen.getByText("Editar parágrafo");
-  const paragrafo = screen.getByText("Me altere, por favor!");
+test('Removendo um item da lista', () => {
+  const itens = document.getElementsByTagName("li")
+  const totalDeItens = itens.length
+  const button = document.querySelector("button");
   button.click()
-  expect(paragrafo.contentEditable).toBe(true)  
+  expect(totalDeItens).toBe(itens.length + 1)
 })
 
-
-test('Ao clicar no botão quando o parágrafo estiver editável deve torná-lo não editável', () => {
-  const button = screen.getByText("Editar parágrafo");
-  const paragrafo = screen.getByText("Me altere, por favor!");
-  button.click()
-  expect(paragrafo.contentEditable).toBe(true)  
-  button.click()
-  expect(paragrafo.contentEditable).toBe(false)  
+test('Removendo todos os itens da lista', () => {
+  const itens = document.getElementsByTagName("li")
+  const buttons = document.querySelectorAll("button");
+  for(const button of buttons) {
+    button.click()
+  }
+  expect(itens.length).toBe(0)
 })
 
-
-test('Alterando o conteúdo do parágrafo', () => {
-  let button = screen.getByText("Editar parágrafo");
-  const paragrafo = screen.getByText("Me altere, por favor!");
-  button.click()
-  expect(paragrafo.contentEditable).toBe(true)
-  button = screen.getByText('Salvar mudança')
-  paragrafo.innerHTML = "AA"
-  button.click()
-  expect(paragrafo.contentEditable).toBe(false)  
-  expect(paragrafo.innerHTML).toBe("AA")
-  button = screen.getByText("Editar parágrafo")
-  expect(button).not.toBeNull()
-})
